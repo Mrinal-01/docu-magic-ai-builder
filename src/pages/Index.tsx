@@ -1,8 +1,9 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Users, Briefcase, Gavel, Receipt, User, LogOut } from "lucide-react";
+import { FileText, Users, Briefcase, Gavel, Receipt, User, LogOut, Presentation } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthModal } from "@/components/auth/AuthModal";
@@ -77,7 +78,7 @@ const documentTypes = [
     description: "Basic structure for startup pitch presentations",
     price: "₹399",
     category: "Business",
-    icon: File,
+    icon: Presentation,
     color: "from-pink-500 to-rose-500"
   }
 ];
