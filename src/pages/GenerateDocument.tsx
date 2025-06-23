@@ -10,7 +10,8 @@ import { ArrowLeft, ArrowRight, Download, ExternalLink } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { SignatureCapture } from "@/components/SignatureCapture";
 import { generateDocumentDummy, downloadDocument } from "@/utils/documentGenerator";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { useAuth } from "@/contexts/AuthContext";
+import { AuthModal } from "@/components/auth/AuthModal";
 
 interface Question {
   id: string;
@@ -72,7 +73,7 @@ const documentConfigs: Record<string, DocumentConfig> = {
   }
 };
 
-const GenerateDocumentContent = () => {
+const GenerateDocument = () => {
   const { docType } = useParams<{ docType: string }>();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
@@ -86,7 +87,10 @@ const GenerateDocumentContent = () => {
     downloadUrl: string;
     createdAt: string;
   } | null>(null);
-
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  
+  const { isAuthenticated } = useAuth();
   const config = docType ? documentConfigs[docType] : null;
 
   useEffect(() => {
@@ -128,7 +132,7 @@ const GenerateDocumentContent = () => {
   const handleGenerate = async () => {
     setIsGenerating(true);
     try {
-      // Using dummy function - replace with actual backend call
+      // Generate document without requiring authentication
       const document = await generateDocumentDummy({
         documentType: config.title,
         answers,
@@ -140,7 +144,7 @@ const GenerateDocumentContent = () => {
       
       toast({
         title: "Document Generated Successfully!",
-        description: "Your professional document is ready for download.",
+        description: "Your professional document is ready. Login to download it.",
       });
     } catch (error) {
       toast({
@@ -154,9 +158,13 @@ const GenerateDocumentContent = () => {
   };
 
   const handleDownload = async () => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+
     if (generatedDocument) {
       try {
-        // Use the secure download function that requires authentication
         await downloadDocument(generatedDocument.id);
         
         toast({
@@ -170,6 +178,14 @@ const GenerateDocumentContent = () => {
           variant: "destructive",
         });
       }
+    }
+  };
+
+  const handleAuthSuccess = () => {
+    setShowAuthModal(false);
+    // After successful auth, automatically start download
+    if (generatedDocument) {
+      handleDownload();
     }
   };
 
@@ -249,10 +265,16 @@ const GenerateDocumentContent = () => {
             <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-4">
               <p className="text-green-300 font-medium">Document Generated Successfully!</p>
               <p className="text-green-200 text-sm mt-1">Document ID: {generatedDocument.id}</p>
+              {!isAuthenticated && (
+                <p className="text-yellow-300 text-sm mt-2">Please login or sign up to download your document</p>
+              )}
             </div>
-            <Button onClick={handleDownload} className="bg-green-600 hover:bg-green-700">
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Open Download Link
+            <Button 
+              onClick={handleDownload} 
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              {isAuthenticated ? 'Download Document' : 'Login to Download'}
             </Button>
           </div>
         ) : (
@@ -343,15 +365,15 @@ const GenerateDocumentContent = () => {
           </Card>
         </div>
       </div>
-    </div>
-  );
-};
 
-const GenerateDocument = () => {
-  return (
-    <ProtectedRoute>
-      <GenerateDocumentContent />
-    </ProtectedRoute>
+      {/* Auth Modal for Download */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        defaultMode={authMode}
+        onSuccess={handleAuthSuccess}
+      />
+    </div>
   );
 };
 

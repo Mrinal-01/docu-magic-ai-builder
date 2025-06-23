@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -84,27 +83,18 @@ const documentTypes = [
 ];
 
 const Index = () => {
-  const [selectedDoc, setSelectedDoc] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuth();
 
   const handleDocumentSelect = (docId: string) => {
-    if (!isAuthenticated) {
-      setShowAuthModal(true);
-      setSelectedDoc(docId);
-      return;
-    }
+    // Allow document generation without authentication
     navigate(`/generate/${docId}`);
   };
 
   const handleAuthSuccess = () => {
     setShowAuthModal(false);
-    if (selectedDoc) {
-      navigate(`/generate/${selectedDoc}`);
-      setSelectedDoc(null);
-    }
   };
 
   const handleLogout = async () => {
@@ -185,7 +175,7 @@ const Index = () => {
           </p>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto">
             AI-powered professional document generation for startups, freelancers, and businesses. 
-            No legal expertise required.
+            No legal expertise required. Generate for free, login only to download.
           </p>
         </div>
 
@@ -250,6 +240,7 @@ const Index = () => {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         defaultMode={authMode}
+        onSuccess={handleAuthSuccess}
       />
     </div>
   );

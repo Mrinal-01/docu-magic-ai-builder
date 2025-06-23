@@ -8,14 +8,20 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   defaultMode?: 'login' | 'register';
+  onSuccess?: () => void;
 }
 
-export const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) => {
+export const AuthModal = ({ isOpen, onClose, defaultMode = 'login', onSuccess }: AuthModalProps) => {
   const [mode, setMode] = useState<'login' | 'register'>(defaultMode);
 
   const handleClose = () => {
     setMode('login');
     onClose();
+  };
+
+  const handleSuccess = () => {
+    handleClose();
+    onSuccess?.();
   };
 
   return (
@@ -24,15 +30,16 @@ export const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
         {mode === 'login' ? (
           <LoginForm
             onSwitchToRegister={() => setMode('register')}
-            onClose={handleClose}
+            onClose={handleSuccess}
           />
         ) : (
           <RegisterForm
             onSwitchToLogin={() => setMode('login')}
-            onClose={handleClose}
+            onClose={handleSuccess}
           />
         )}
       </DialogContent>
     </Dialog>
   );
 };
+
