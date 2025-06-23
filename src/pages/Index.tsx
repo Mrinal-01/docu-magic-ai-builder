@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Users, Briefcase, Gavel, FileInvoice, File } from "lucide-react";
+import { FileText, Users, Briefcase, Gavel, Receipt, File } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const documentTypes = [
@@ -58,7 +58,7 @@ const documentTypes = [
     description: "Professional invoice for freelance services",
     price: "₹79",
     category: "Financial",
-    icon: FileInvoice,
+    icon: Receipt,
     color: "from-yellow-500 to-orange-500"
   },
   {
