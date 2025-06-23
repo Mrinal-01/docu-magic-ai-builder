@@ -13,15 +13,25 @@ interface GeneratedDocument {
   createdAt: string;
 }
 
+const getAuthToken = () => {
+  return localStorage.getItem('auth_token');
+};
+
 export const generateDocumentWithBackend = async (params: DocumentGenerationParams): Promise<GeneratedDocument> => {
   const { documentType, answers, modifications, signatures } = params;
+  const token = getAuthToken();
+
+  if (!token) {
+    throw new Error("Authentication required");
+  }
 
   try {
-    // Call backend API for document generation
+    // TODO: Replace '/api/documents/generate' with your actual backend API URL
     const response = await fetch('/api/documents/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({
         documentType,
@@ -32,6 +42,9 @@ export const generateDocumentWithBackend = async (params: DocumentGenerationPara
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error("Authentication failed. Please log in again.");
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -43,9 +56,14 @@ export const generateDocumentWithBackend = async (params: DocumentGenerationPara
   }
 };
 
-// Dummy function for development - replace with actual backend call
+// Enhanced dummy function for development - replace with actual backend call
 export const generateDocumentDummy = async (params: DocumentGenerationParams): Promise<GeneratedDocument> => {
   const { documentType, answers } = params;
+  const token = getAuthToken();
+  
+  if (!token) {
+    throw new Error("Authentication required");
+  }
   
   console.log("Document generation request:", params);
   
@@ -59,4 +77,45 @@ export const generateDocumentDummy = async (params: DocumentGenerationParams): P
     downloadUrl: `https://api.example.com/documents/download/doc_${Date.now()}`,
     createdAt: new Date().toISOString()
   };
+};
+
+// Function to download document (requires authentication)
+export const downloadDocument = async (documentId: string): Promise<void> => {
+  const token = getAuthToken();
+
+  if (!token) {
+    throw new Error("Authentication required");
+  }
+
+  try {
+    // TODO: Replace '/api/documents/download' with your actual backend API URL
+    const response = await fetch(`/api/documents/download/${documentId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error("Authentication failed. Please log in again.");
+      }
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Handle file download
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = `document_${documentId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  } catch (error) {
+    console.error("Error downloading document:", error);
+    throw new Error("Failed to download document");
+  }
 };

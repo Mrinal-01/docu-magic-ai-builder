@@ -9,7 +9,8 @@ import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Download, ExternalLink } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { SignatureCapture } from "@/components/SignatureCapture";
-import { generateDocumentDummy } from "@/utils/documentGenerator";
+import { generateDocumentDummy, downloadDocument } from "@/utils/documentGenerator";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 interface Question {
   id: string;
@@ -71,7 +72,7 @@ const documentConfigs: Record<string, DocumentConfig> = {
   }
 };
 
-const GenerateDocument = () => {
+const GenerateDocumentContent = () => {
   const { docType } = useParams<{ docType: string }>();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
@@ -152,15 +153,23 @@ const GenerateDocument = () => {
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (generatedDocument) {
-      // In production, this would download from the backend URL
-      window.open(generatedDocument.downloadUrl, '_blank');
-      
-      toast({
-        title: "Opening Download",
-        description: "Your document download is being processed.",
-      });
+      try {
+        // Use the secure download function that requires authentication
+        await downloadDocument(generatedDocument.id);
+        
+        toast({
+          title: "Download Started",
+          description: "Your document is being downloaded.",
+        });
+      } catch (error) {
+        toast({
+          title: "Download Failed",
+          description: error instanceof Error ? error.message : "Failed to download document",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -335,6 +344,14 @@ const GenerateDocument = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const GenerateDocument = () => {
+  return (
+    <ProtectedRoute>
+      <GenerateDocumentContent />
+    </ProtectedRoute>
   );
 };
 

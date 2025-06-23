@@ -1,10 +1,11 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Users, Briefcase, Gavel, Receipt, File } from "lucide-react";
+import { FileText, Users, Briefcase, Gavel, Receipt, User, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { AuthModal } from "@/components/auth/AuthModal";
 
 const documentTypes = [
   {
@@ -83,11 +84,34 @@ const documentTypes = [
 
 const Index = () => {
   const [selectedDoc, setSelectedDoc] = useState<string | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const navigate = useNavigate();
+  const { user, logout, isAuthenticated } = useAuth();
 
   const handleDocumentSelect = (docId: string) => {
-    setSelectedDoc(docId);
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      setSelectedDoc(docId);
+      return;
+    }
     navigate(`/generate/${docId}`);
+  };
+
+  const handleAuthSuccess = () => {
+    setShowAuthModal(false);
+    if (selectedDoc) {
+      navigate(`/generate/${selectedDoc}`);
+      setSelectedDoc(null);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   return (
@@ -100,7 +124,57 @@ const Index = () => {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-12">
-        {/* Header */}
+        {/* Header with Auth */}
+        <div className="flex justify-between items-center mb-8">
+          <div></div>
+          <div className="flex items-center gap-4">
+            {isAuthenticated ? (
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-white">
+                  <User className="w-4 h-4" />
+                  <span className="text-sm">
+                    {user?.first_name ? `${user.first_name} ${user.last_name}` : user?.email}
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="border-white/20 text-white hover:bg-white/10"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setAuthMode('login');
+                    setShowAuthModal(true);
+                  }}
+                  className="border-white/20 text-white hover:bg-white/10"
+                >
+                  Login
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setAuthMode('register');
+                    setShowAuthModal(true);
+                  }}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                >
+                  Sign Up
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Main Header */}
         <div className="text-center mb-16 animate-fade-in">
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
             DocuForge AI
@@ -169,6 +243,13 @@ const Index = () => {
           </div>
         </div>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        defaultMode={authMode}
+      />
     </div>
   );
 };
