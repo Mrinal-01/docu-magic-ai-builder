@@ -6,175 +6,57 @@ interface DocumentGenerationParams {
   signatures: Record<string, string>;
 }
 
-export const generateDocumentWithGemini = async (params: DocumentGenerationParams): Promise<string> => {
+interface GeneratedDocument {
+  id: string;
+  content: string;
+  downloadUrl: string;
+  createdAt: string;
+}
+
+export const generateDocumentWithBackend = async (params: DocumentGenerationParams): Promise<GeneratedDocument> => {
   const { documentType, answers, modifications, signatures } = params;
 
-  // Create a comprehensive prompt for Gemini
-  const prompt = `
-You are a professional legal document generator. Create a comprehensive, professional, and legally sound ${documentType} document based on the following information:
-
-DOCUMENT TYPE: ${documentType}
-
-ANSWERS PROVIDED:
-${Object.entries(answers).map(([key, value]) => `${key.replace(/_/g, ' ').toUpperCase()}: ${value}`).join('\n')}
-
-ADDITIONAL MODIFICATIONS OR REQUIREMENTS:
-${modifications || "None specified"}
-
-SIGNATURE INFORMATION:
-${Object.keys(signatures).length > 0 ? "Digital signatures have been captured and will be attached" : "No signatures captured"}
-
-INSTRUCTIONS FOR DOCUMENT CREATION:
-1. Create a professional, legally compliant document that follows industry standards
-2. Use formal legal language appropriate for the document type
-3. Include all necessary clauses and provisions typically found in this type of document
-4. Incorporate all the provided information seamlessly into the document structure
-5. Add standard legal disclaimers and terms where appropriate
-6. Format the document with proper headings, sections, and numbering
-7. Include signature blocks and date fields at the end
-8. Make sure the document is ready for immediate use and signing
-
-FORMATTING REQUIREMENTS:
-- Use clear, professional formatting
-- Include proper document headers
-- Number sections and subsections appropriately
-- Add adequate spacing between sections
-- Include standard legal footer information
-- Ensure the document looks professional and business-ready
-
-Please generate a complete, professional ${documentType} document that can be immediately used for legal purposes. The document should be comprehensive, well-structured, and include all standard provisions for this type of agreement.
-`;
-
   try {
-    // For now, we'll create a mock response since we need API key setup
-    // In a real implementation, you would call the Gemini API here
-    const mockDocument = generateMockDocument(documentType, answers, modifications);
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    return mockDocument;
+    // Call backend API for document generation
+    const response = await fetch('/api/documents/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        documentType,
+        answers,
+        modifications,
+        signatures
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return result;
   } catch (error) {
     console.error("Error generating document:", error);
     throw new Error("Failed to generate document");
   }
 };
 
-const generateMockDocument = (documentType: string, answers: Record<string, string>, modifications: string): string => {
-  const currentDate = new Date().toLocaleDateString();
+// Dummy function for development - replace with actual backend call
+export const generateDocumentDummy = async (params: DocumentGenerationParams): Promise<GeneratedDocument> => {
+  const { documentType, answers } = params;
   
-  if (documentType === "Rent Agreement") {
-    return `
-RENTAL AGREEMENT
-
-This Rental Agreement is made on ${currentDate}, between ${answers.landlord_name || "[LANDLORD NAME]"} (the "Landlord") and ${answers.tenant_name || "[TENANT NAME]"} (the "Tenant").
-
-PROPERTY DETAILS:
-The Landlord agrees to rent to the Tenant the following property:
-Address: ${answers.property_address || "[PROPERTY ADDRESS]"}
-
-TERMS AND CONDITIONS:
-
-1. RENT: The monthly rent for the premises is ₹${answers.monthly_rent || "[AMOUNT]"}, due on the 1st day of each month.
-
-2. LEASE TERM: This lease agreement shall be for a period of ${answers.lease_duration || "[DURATION]"} months, beginning on ${currentDate}.
-
-3. SECURITY DEPOSIT: The Tenant shall pay a security deposit of ₹${answers.security_deposit || "[AMOUNT]"} upon signing this agreement.
-
-4. USE OF PREMISES: The premises shall be used solely as a residential dwelling.
-
-5. MAINTENANCE: The Tenant agrees to maintain the property in good condition and report any damages immediately.
-
-6. UTILITIES: [Standard utility clauses]
-
-7. TERMINATION: Either party may terminate this agreement with 30 days written notice.
-
-ADDITIONAL TERMS:
-${modifications || "No additional modifications specified."}
-
-IN WITNESS WHEREOF, the parties have executed this Agreement as of the date first written above.
-
-LANDLORD: _________________________ DATE: _________
-${answers.landlord_name || "[LANDLORD NAME]"}
-
-TENANT: _________________________ DATE: _________
-${answers.tenant_name || "[TENANT NAME]"}
-
----
-This document has been generated by DocuForge AI and should be reviewed by legal counsel before use.
-`;
-  }
-
-  if (documentType === "Job Offer Letter") {
-    return `
-JOB OFFER LETTER
-
-Date: ${currentDate}
-
-Dear ${answers.candidate_name || "[CANDIDATE NAME]"},
-
-We are pleased to offer you the position of ${answers.position || "[POSITION]"} at ${answers.company_name || "[COMPANY NAME]"}.
-
-POSITION DETAILS:
-- Job Title: ${answers.position || "[POSITION]"}
-- Start Date: ${answers.start_date || "[START DATE]"}
-- Annual Salary: ₹${answers.salary || "[SALARY]"}
-- Reporting Structure: [To be determined]
-
-BENEFITS AND PERKS:
-${answers.benefits || "Standard company benefits package"}
-
-TERMS AND CONDITIONS:
-1. This offer is contingent upon successful completion of background checks and reference verification.
-2. Employment is at-will and may be terminated by either party with appropriate notice.
-3. You will be required to sign our standard employment agreement and confidentiality agreement.
-
-ADDITIONAL TERMS:
-${modifications || "No additional modifications specified."}
-
-Please confirm your acceptance of this offer by signing and returning this letter by [DATE].
-
-We look forward to welcoming you to our team!
-
-Sincerely,
-
-[HIRING MANAGER NAME]
-[TITLE]
-${answers.company_name || "[COMPANY NAME]"}
-
-ACCEPTANCE:
-I accept the terms of this job offer.
-
-Signature: _________________________ Date: _________
-${answers.candidate_name || "[CANDIDATE NAME]"}
-
----
-This document has been generated by DocuForge AI and should be reviewed by legal counsel before use.
-`;
-  }
-
-  // Generic document template
-  return `
-${documentType.toUpperCase()}
-
-Date: ${currentDate}
-
-This ${documentType} is created with the following details:
-
-${Object.entries(answers).map(([key, value]) => 
-  `${key.replace(/_/g, ' ').toUpperCase()}: ${value}`
-).join('\n')}
-
-ADDITIONAL TERMS AND CONDITIONS:
-${modifications || "No additional modifications specified."}
-
-SIGNATURES:
-
-Party 1: _________________________ Date: _________
-
-Party 2: _________________________ Date: _________
-
----
-This document has been generated by DocuForge AI and should be reviewed by legal counsel before use.
-`;
+  console.log("Document generation request:", params);
+  
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  // Return dummy response that mimics backend structure
+  return {
+    id: `doc_${Date.now()}`,
+    content: `This is a dummy ${documentType} document generated with the provided answers.`,
+    downloadUrl: `https://api.example.com/documents/download/doc_${Date.now()}`,
+    createdAt: new Date().toISOString()
+  };
 };

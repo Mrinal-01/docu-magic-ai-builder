@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,10 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Download, Signature } from "lucide-react";
+import { ArrowLeft, ArrowRight, Download, ExternalLink } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { SignatureCapture } from "@/components/SignatureCapture";
-import { generateDocumentWithGemini } from "@/utils/documentGenerator";
+import { generateDocumentDummy } from "@/utils/documentGenerator";
 
 interface Question {
   id: string;
@@ -80,7 +79,12 @@ const GenerateDocument = () => {
   const [modifications, setModifications] = useState("");
   const [signatures, setSignatures] = useState<Record<string, string>>({});
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedDocument, setGeneratedDocument] = useState<string | null>(null);
+  const [generatedDocument, setGeneratedDocument] = useState<{
+    id: string;
+    content: string;
+    downloadUrl: string;
+    createdAt: string;
+  } | null>(null);
 
   const config = docType ? documentConfigs[docType] : null;
 
@@ -123,13 +127,16 @@ const GenerateDocument = () => {
   const handleGenerate = async () => {
     setIsGenerating(true);
     try {
-      const documentContent = await generateDocumentWithGemini({
+      // Using dummy function - replace with actual backend call
+      const document = await generateDocumentDummy({
         documentType: config.title,
         answers,
         modifications,
         signatures
       });
-      setGeneratedDocument(documentContent);
+      
+      setGeneratedDocument(document);
+      
       toast({
         title: "Document Generated Successfully!",
         description: "Your professional document is ready for download.",
@@ -147,19 +154,12 @@ const GenerateDocument = () => {
 
   const handleDownload = () => {
     if (generatedDocument) {
-      const blob = new Blob([generatedDocument], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${config.title.replace(/\s+/g, '_')}_${Date.now()}.txt`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      // In production, this would download from the backend URL
+      window.open(generatedDocument.downloadUrl, '_blank');
       
       toast({
-        title: "Download Started",
-        description: "Your document is being downloaded.",
+        title: "Opening Download",
+        description: "Your document download is being processed.",
       });
     }
   };
@@ -239,10 +239,11 @@ const GenerateDocument = () => {
           <div className="space-y-4">
             <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-4">
               <p className="text-green-300 font-medium">Document Generated Successfully!</p>
+              <p className="text-green-200 text-sm mt-1">Document ID: {generatedDocument.id}</p>
             </div>
             <Button onClick={handleDownload} className="bg-green-600 hover:bg-green-700">
-              <Download className="w-4 h-4 mr-2" />
-              Download Document
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Open Download Link
             </Button>
           </div>
         ) : (
