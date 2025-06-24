@@ -1,17 +1,22 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
   id: string;
   email: string;
   name: string;
+  first_name?: string;
+  last_name?: string;
   createdAt: string;
+  subscription_status?: 'free' | 'premium' | 'enterprise';
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -35,6 +40,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return !!localStorage.getItem('auth_token');
   });
 
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     if (user) {
       localStorage.setItem('user', JSON.stringify(user));
@@ -44,23 +51,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user]);
 
   const login = async (email: string, password: string): Promise<void> => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Test credentials
-    const testUsers = {
-      'admin@docuforge.com': { password: 'admin123', name: 'Admin User', role: 'admin' },
-      'user@test.com': { password: 'user123', name: 'Test User', role: 'user' }
-    };
+    setLoading(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Test credentials
+      const testUsers = {
+        'admin@docuforge.com': { password: 'admin123', name: 'Admin User', role: 'admin' },
+        'user@test.com': { password: 'user123', name: 'Test User', role: 'user' }
+      };
 
-    const testUser = testUsers[email as keyof typeof testUsers];
-    
-    if (testUser && testUser.password === password) {
+      const testUser = testUsers[email as keyof typeof testUsers];
+      
+      if (testUser && testUser.password === password) {
+        const userData: User = {
+          id: email === 'admin@docuforge.com' ? 'admin-1' : 'user-1',
+          email,
+          name: testUser.name,
+          first_name: testUser.name.split(' ')[0],
+          last_name: testUser.name.split(' ')[1] || '',
+          createdAt: new Date().toISOString(),
+          subscription_status: email === 'admin@docuforge.com' ? 'enterprise' : 'free'
+        };
+        
+        setUser(userData);
+        setIsAuthenticated(true);
+        
+        // Store auth token
+        localStorage.setItem('auth_token', 'dummy-jwt-token');
+        
+        return;
+      }
+
+      throw new Error('Invalid email or password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const register = async (email: string, password: string, firstName: string, lastName: string): Promise<void> => {
+    setLoading(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // In a real app, you'd validate the email isn't already taken
       const userData: User = {
-        id: email === 'admin@docuforge.com' ? 'admin-1' : 'user-1',
+        id: `user-${Date.now()}`,
         email,
-        name: testUser.name,
-        createdAt: new Date().toISOString()
+        name: `${firstName} ${lastName}`,
+        first_name: firstName,
+        last_name: lastName,
+        createdAt: new Date().toISOString(),
+        subscription_status: 'free'
       };
       
       setUser(userData);
@@ -68,30 +112,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Store auth token
       localStorage.setItem('auth_token', 'dummy-jwt-token');
-      
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    throw new Error('Invalid email or password');
-  };
-
-  const register = async (email: string, password: string, name: string): Promise<void> => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // In a real app, you'd validate the email isn't already taken
-    const userData: User = {
-      id: `user-${Date.now()}`,
-      email,
-      name,
-      createdAt: new Date().toISOString()
-    };
-    
-    setUser(userData);
-    setIsAuthenticated(true);
-    
-    // Store auth token
-    localStorage.setItem('auth_token', 'dummy-jwt-token');
   };
 
   const logout = () => {
@@ -102,7 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

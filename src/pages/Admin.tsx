@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,10 +15,12 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
+type QuestionType = "text" | "textarea" | "select";
+
 interface Question {
   id: string;
   question: string;
-  type: "text" | "textarea" | "select";
+  type: QuestionType;
   options?: string[];
   required: boolean;
 }
@@ -40,7 +43,7 @@ const Admin = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [newQuestion, setNewQuestion] = useState({
     question: '',
-    type: 'text' as const,
+    type: 'text' as QuestionType,
     options: [''],
     required: true
   });
@@ -372,7 +375,7 @@ const Admin = () => {
                       <Label className="text-white dark:text-gray-200">Question Type</Label>
                       <Select 
                         value={newQuestion.type} 
-                        onValueChange={(value: "text" | "textarea" | "select") => 
+                        onValueChange={(value: QuestionType) => 
                           setNewQuestion({...newQuestion, type: value, options: value === 'select' ? [''] : []})
                         }
                       >
