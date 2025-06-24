@@ -1,21 +1,18 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
   id: string;
   email: string;
-  first_name?: string;
-  last_name?: string;
-  subscription_status: 'free' | 'premium' | 'enterprise';
+  name: string;
+  createdAt: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, firstName?: string, lastName?: string) => Promise<void>;
-  logout: () => Promise<void>;
   isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name: string) => Promise<void>;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,160 +27,83 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
-    // Demo user for admin access
-    const demoUser = {
-      id: '1',
-      email: 'admin@docuforge.com',
-      first_name: 'Admin',
-      last_name: 'User',
-      subscription_status: 'enterprise' as const
-    };
-    
-    const token = localStorage.getItem('auth_token');
-    if (token === 'demo_admin_token') {
-      return demoUser;
-    }
-    return null;
+    const saved = localStorage.getItem('user');
+    return saved ? JSON.parse(saved) : null;
   });
-  const [loading, setLoading] = useState(true);
+
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return !!localStorage.getItem('auth_token');
+  });
 
   useEffect(() => {
-    checkAuthStatus();
-  }, []);
-
-  const checkAuthStatus = async () => {
-    try {
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
-      // Demo admin token check
-      if (token === 'demo_admin_token') {
-        setUser({
-          id: '1',
-          email: 'admin@docuforge.com',
-          first_name: 'Admin',
-          last_name: 'User',
-          subscription_status: 'enterprise'
-        });
-        setLoading(false);
-        return;
-      }
-
-      // TODO: Replace with your backend API
-      const response = await fetch('/api/auth/me', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-      } else {
-        localStorage.removeItem('auth_token');
-      }
-    } catch (error) {
-      console.error('Auth check failed:', error);
-      localStorage.removeItem('auth_token');
-    } finally {
-      setLoading(false);
+    if (user) {
+      localStorage.setItem('user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('user');
     }
-  };
+  }, [user]);
 
-  const login = async (email: string, password: string) => {
-    // Demo admin login
-    if (email === 'admin@docuforge.com' && password === 'admin123') {
-      const token = 'demo_admin_token';
-      const userData = {
-        id: '1',
-        email: 'admin@docuforge.com',
-        first_name: 'Admin',
-        last_name: 'User',
-        subscription_status: 'enterprise' as const
+  const login = async (email: string, password: string): Promise<void> => {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Test credentials
+    const testUsers = {
+      'admin@docuforge.com': { password: 'admin123', name: 'Admin User', role: 'admin' },
+      'user@test.com': { password: 'user123', name: 'Test User', role: 'user' }
+    };
+
+    const testUser = testUsers[email as keyof typeof testUsers];
+    
+    if (testUser && testUser.password === password) {
+      const userData: User = {
+        id: email === 'admin@docuforge.com' ? 'admin-1' : 'user-1',
+        email,
+        name: testUser.name,
+        createdAt: new Date().toISOString()
       };
       
-      localStorage.setItem('auth_token', token);
       setUser(userData);
+      setIsAuthenticated(true);
+      
+      // Store auth token
+      localStorage.setItem('auth_token', 'dummy-jwt-token');
+      
       return;
     }
 
-    // TODO: Replace with your backend API
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    throw new Error('Invalid email or password');
+  };
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Login failed');
-    }
-
-    const { user: userData, token } = await response.json();
-    localStorage.setItem('auth_token', token);
+  const register = async (email: string, password: string, name: string): Promise<void> => {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // In a real app, you'd validate the email isn't already taken
+    const userData: User = {
+      id: `user-${Date.now()}`,
+      email,
+      name,
+      createdAt: new Date().toISOString()
+    };
+    
     setUser(userData);
+    setIsAuthenticated(true);
+    
+    // Store auth token
+    localStorage.setItem('auth_token', 'dummy-jwt-token');
   };
 
-  const register = async (email: string, password: string, firstName?: string, lastName?: string) => {
-    // TODO: Replace with your backend API
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email,
-        password,
-        first_name: firstName,
-        last_name: lastName,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Registration failed');
-    }
-
-    const { user: userData, token } = await response.json();
-    localStorage.setItem('auth_token', token);
-    setUser(userData);
+  const logout = () => {
+    setUser(null);
+    setIsAuthenticated(false);
+    localStorage.removeItem('user');
+    localStorage.removeItem('auth_token');
   };
 
-  const logout = async () => {
-    try {
-      const token = localStorage.getItem('auth_token');
-      if (token && token !== 'demo_admin_token') {
-        // TODO: Replace with your backend API
-        await fetch('/api/auth/logout', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-      }
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      localStorage.removeItem('auth_token');
-      setUser(null);
-    }
-  };
-
-  const value = {
-    user,
-    loading,
-    login,
-    register,
-    logout,
-    isAuthenticated: !!user,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, isAuthenticated, login, register, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };

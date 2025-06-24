@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,12 +6,21 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, Settings } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Plus, Trash2, X } from 'lucide-react';
 import { useAdmin } from '@/contexts/AdminContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/ThemeToggle';
+
+interface Question {
+  id: string;
+  question: string;
+  type: "text" | "textarea" | "select";
+  options?: string[];
+  required: boolean;
+}
 
 const Admin = () => {
   const { documentTypes, addDocumentType, removeDocumentType } = useAdmin();
@@ -25,10 +33,19 @@ const Admin = () => {
     price: '',
     category: '',
     icon: 'FileText',
-    color: 'from-blue-500 to-purple-600'
+    color: 'from-blue-500 to-purple-600',
+    requiresSignature: true,
+    dualPartySignature: false
+  });
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [newQuestion, setNewQuestion] = useState({
+    question: '',
+    type: 'text' as const,
+    options: [''],
+    required: true
   });
 
-  // Check if user is admin (in real app, this would be a proper role check)
+  // Check if user is admin
   const isAdmin = user?.email === 'admin@docuforge.com';
 
   if (!isAdmin) {
@@ -51,11 +68,65 @@ const Admin = () => {
     );
   }
 
+  const addQuestion = () => {
+    if (!newQuestion.question) {
+      toast({
+        title: "Missing Question",
+        description: "Please enter a question.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const question: Question = {
+      id: `q_${Date.now()}`,
+      question: newQuestion.question,
+      type: newQuestion.type,
+      options: newQuestion.type === 'select' ? newQuestion.options.filter(opt => opt.trim()) : undefined,
+      required: newQuestion.required
+    };
+
+    setQuestions([...questions, question]);
+    setNewQuestion({
+      question: '',
+      type: 'text',
+      options: [''],
+      required: true
+    });
+  };
+
+  const removeQuestion = (id: string) => {
+    setQuestions(questions.filter(q => q.id !== id));
+  };
+
+  const addOption = () => {
+    setNewQuestion({
+      ...newQuestion,
+      options: [...newQuestion.options, '']
+    });
+  };
+
+  const updateOption = (index: number, value: string) => {
+    const updatedOptions = [...newQuestion.options];
+    updatedOptions[index] = value;
+    setNewQuestion({
+      ...newQuestion,
+      options: updatedOptions
+    });
+  };
+
+  const removeOption = (index: number) => {
+    setNewQuestion({
+      ...newQuestion,
+      options: newQuestion.options.filter((_, i) => i !== index)
+    });
+  };
+
   const handleAddDocument = () => {
-    if (!newDoc.title || !newDoc.description) {
+    if (!newDoc.title || !newDoc.description || questions.length === 0) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required fields.",
+        description: "Please fill in all required fields and add at least one question.",
         variant: "destructive"
       });
       return;
@@ -64,14 +135,23 @@ const Admin = () => {
     const docType = {
       id: newDoc.title.toLowerCase().replace(/\s+/g, '-'),
       ...newDoc,
-      questions: [
-        { id: 'basic_info', question: 'Basic Information', type: 'text' as const, required: true }
-      ],
-      requiresSignature: true
+      questions,
+      requiresSignature: newDoc.requiresSignature,
+      dualPartySignature: newDoc.dualPartySignature
     };
 
     addDocumentType(docType);
-    setNewDoc({ title: '', description: '', price: '', category: '', icon: 'FileText', color: 'from-blue-500 to-purple-600' });
+    setNewDoc({ 
+      title: '', 
+      description: '', 
+      price: '', 
+      category: '', 
+      icon: 'FileText', 
+      color: 'from-blue-500 to-purple-600',
+      requiresSignature: true,
+      dualPartySignature: false
+    });
+    setQuestions([]);
     setShowAddForm(false);
     
     toast({
@@ -88,6 +168,11 @@ const Admin = () => {
           <div>
             <h1 className="text-3xl font-bold text-white dark:text-gray-100 mb-2">Admin Dashboard</h1>
             <p className="text-gray-300 dark:text-gray-400">Manage document types and system settings</p>
+            <div className="mt-4 p-4 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+              <h3 className="text-white font-medium mb-2">Test Credentials:</h3>
+              <p className="text-blue-300 text-sm">Admin: admin@docuforge.com / admin123</p>
+              <p className="text-blue-300 text-sm">User: user@test.com / user123</p>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <ThemeToggle />
@@ -145,7 +230,8 @@ const Admin = () => {
             <CardHeader>
               <CardTitle className="text-white dark:text-gray-100">Add New Document Type</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-white dark:text-gray-200">Title</Label>
@@ -165,6 +251,7 @@ const Admin = () => {
                   />
                 </div>
               </div>
+              
               <div>
                 <Label className="text-white dark:text-gray-200">Description</Label>
                 <Textarea 
@@ -173,6 +260,7 @@ const Admin = () => {
                   className="bg-white/10 border-white/20 text-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                 />
               </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-white dark:text-gray-200">Category</Label>
@@ -203,9 +291,161 @@ const Admin = () => {
                   </Select>
                 </div>
               </div>
+
+              {/* Signature Settings */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-white dark:text-gray-100">Signature Settings</h3>
+                <div className="flex items-center space-x-3">
+                  <Switch
+                    checked={newDoc.requiresSignature}
+                    onCheckedChange={(checked) => setNewDoc({...newDoc, requiresSignature: checked})}
+                  />
+                  <Label className="text-white dark:text-gray-200">Requires Digital Signature</Label>
+                </div>
+                {newDoc.requiresSignature && (
+                  <div className="flex items-center space-x-3">
+                    <Switch
+                      checked={newDoc.dualPartySignature}
+                      onCheckedChange={(checked) => setNewDoc({...newDoc, dualPartySignature: checked})}
+                    />
+                    <Label className="text-white dark:text-gray-200">Dual Party Signature (Both parties sign)</Label>
+                  </div>
+                )}
+              </div>
+
+              {/* Questions Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-white dark:text-gray-100">Questions</h3>
+                
+                {/* Existing Questions */}
+                {questions.length > 0 && (
+                  <div className="space-y-3">
+                    {questions.map((q, index) => (
+                      <div key={q.id} className="bg-white/5 p-3 rounded-lg border border-white/10">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <p className="text-white font-medium">{index + 1}. {q.question}</p>
+                            <div className="flex gap-2 mt-2">
+                              <Badge variant="secondary" className="bg-blue-500/20 text-blue-300">
+                                {q.type}
+                              </Badge>
+                              {q.required && (
+                                <Badge variant="secondary" className="bg-red-500/20 text-red-300">
+                                  Required
+                                </Badge>
+                              )}
+                            </div>
+                            {q.options && (
+                              <p className="text-gray-300 text-sm mt-1">Options: {q.options.join(', ')}</p>
+                            )}
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => removeQuestion(q.id)}
+                            className="text-red-400 hover:text-red-300"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add New Question */}
+                <div className="bg-white/5 p-4 rounded-lg border border-white/10 space-y-4">
+                  <h4 className="text-white font-medium">Add New Question</h4>
+                  
+                  <div>
+                    <Label className="text-white dark:text-gray-200">Question</Label>
+                    <Input
+                      value={newQuestion.question}
+                      onChange={(e) => setNewQuestion({...newQuestion, question: e.target.value})}
+                      placeholder="Enter your question"
+                      className="bg-white/10 border-white/20 text-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-white dark:text-gray-200">Question Type</Label>
+                      <Select 
+                        value={newQuestion.type} 
+                        onValueChange={(value: "text" | "textarea" | "select") => 
+                          setNewQuestion({...newQuestion, type: value, options: value === 'select' ? [''] : []})
+                        }
+                      >
+                        <SelectTrigger className="bg-white/10 border-white/20 text-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="text">Text Input</SelectItem>
+                          <SelectItem value="textarea">Long Text</SelectItem>
+                          <SelectItem value="select">Multiple Choice</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-center space-x-3 pt-6">
+                      <Switch
+                        checked={newQuestion.required}
+                        onCheckedChange={(checked) => setNewQuestion({...newQuestion, required: checked})}
+                      />
+                      <Label className="text-white dark:text-gray-200">Required</Label>
+                    </div>
+                  </div>
+
+                  {/* Options for Select Type */}
+                  {newQuestion.type === 'select' && (
+                    <div>
+                      <Label className="text-white dark:text-gray-200">Options</Label>
+                      <div className="space-y-2">
+                        {newQuestion.options.map((option, index) => (
+                          <div key={index} className="flex gap-2">
+                            <Input
+                              value={option}
+                              onChange={(e) => updateOption(index, e.target.value)}
+                              placeholder={`Option ${index + 1}`}
+                              className="bg-white/10 border-white/20 text-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                            />
+                            {newQuestion.options.length > 1 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeOption(index)}
+                                className="text-red-400 hover:text-red-300"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={addOption}
+                          className="border-white/20 text-white hover:bg-white/10 dark:border-gray-600 dark:text-gray-300"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Option
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  <Button
+                    onClick={addQuestion}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Question
+                  </Button>
+                </div>
+              </div>
+
               <div className="flex gap-2">
                 <Button onClick={handleAddDocument} className="bg-green-600 hover:bg-green-700">
-                  Add Document
+                  Create Document Type
                 </Button>
                 <Button variant="outline" onClick={() => setShowAddForm(false)} className="border-white/20 text-white hover:bg-white/10 dark:border-gray-600 dark:text-gray-300">
                   Cancel
@@ -238,11 +478,28 @@ const Admin = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between">
-                  <span className="text-xl font-bold text-green-400">{doc.price}</span>
-                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 dark:bg-gray-700 dark:text-gray-200">
-                    {doc.category}
-                  </Badge>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xl font-bold text-green-400">{doc.price}</span>
+                    <Badge variant="secondary" className="bg-white/20 text-white border-white/30 dark:bg-gray-700 dark:text-gray-200">
+                      {doc.category}
+                    </Badge>
+                  </div>
+                  <div className="text-sm text-gray-300">
+                    <p>{doc.questions.length} questions</p>
+                    <div className="flex gap-2 mt-2">
+                      {doc.requiresSignature && (
+                        <Badge variant="outline" className="border-blue-400 text-blue-300 text-xs">
+                          Signature Required
+                        </Badge>
+                      )}
+                      {doc.dualPartySignature && (
+                        <Badge variant="outline" className="border-purple-400 text-purple-300 text-xs">
+                          Dual Signature
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
