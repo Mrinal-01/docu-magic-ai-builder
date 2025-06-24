@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,7 +70,7 @@ const Index = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => navigate('/dashboard')}
-                  className="border-gray-300 text-gray-900 hover:bg-gray-100 hover:text-gray-900 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-100 bg-white dark:bg-gray-800 transition-colors"
+                  className="border-white/30 text-white hover:bg-white/10 hover:text-white dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-100 bg-transparent dark:bg-transparent transition-colors"
                 >
                   Dashboard
                 </Button>
@@ -77,7 +78,7 @@ const Index = () => {
                   variant="outline"
                   size="sm"
                   onClick={handleLogout}
-                  className="border-gray-300 text-gray-900 hover:bg-gray-100 hover:text-gray-900 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-100 bg-white dark:bg-gray-800 transition-colors"
+                  className="border-white/30 text-white hover:bg-white/10 hover:text-white dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-100 bg-transparent dark:bg-transparent transition-colors"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Logout
@@ -92,7 +93,7 @@ const Index = () => {
                     setAuthMode('login');
                     setShowAuthModal(true);
                   }}
-                  className="border-gray-300 text-gray-900 hover:bg-gray-100 hover:text-gray-900 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-100 bg-white dark:bg-gray-800 transition-colors"
+                  className="border-white/30 text-white hover:bg-white/10 hover:text-white dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-100 bg-transparent dark:bg-transparent transition-colors"
                 >
                   Login
                 </Button>
@@ -102,7 +103,7 @@ const Index = () => {
                     setAuthMode('register');
                     setShowAuthModal(true);
                   }}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0"
                 >
                   Sign Up
                 </Button>
@@ -158,7 +159,6 @@ const Index = () => {
           })}
         </div>
 
-        {/* Features Section */}
         <div className="mt-20 text-center animate-fade-in">
           <h2 className="text-3xl font-bold text-white dark:text-gray-100 mb-8">Why Choose DocuForge AI?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">

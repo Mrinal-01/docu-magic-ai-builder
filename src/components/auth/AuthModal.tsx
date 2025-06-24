@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
@@ -13,6 +13,11 @@ interface AuthModalProps {
 
 export const AuthModal = ({ isOpen, onClose, defaultMode = 'login', onSuccess }: AuthModalProps) => {
   const [mode, setMode] = useState<'login' | 'register'>(defaultMode);
+
+  // Update mode when defaultMode changes
+  useEffect(() => {
+    setMode(defaultMode);
+  }, [defaultMode]);
 
   const handleClose = () => {
     setMode('login');
@@ -42,4 +47,3 @@ export const AuthModal = ({ isOpen, onClose, defaultMode = 'login', onSuccess }:
     </Dialog>
   );
 };
-
