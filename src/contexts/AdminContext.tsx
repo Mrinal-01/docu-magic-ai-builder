@@ -27,6 +27,7 @@ interface AdminContextType {
   addDocumentType: (docType: Omit<DocumentType, 'id'>) => void;
   updateDocumentType: (id: string, docType: Partial<DocumentType>) => void;
   deleteDocumentType: (id: string) => void;
+  removeDocumentType: (id: string) => void;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -170,12 +171,17 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setDocumentTypes(prev => prev.filter(doc => doc.id !== id));
   };
 
+  const removeDocumentType = (id: string) => {
+    setDocumentTypes(prev => prev.filter(doc => doc.id !== id));
+  };
+
   return (
     <AdminContext.Provider value={{
       documentTypes,
       addDocumentType,
       updateDocumentType,
-      deleteDocumentType
+      deleteDocumentType,
+      removeDocumentType
     }}>
       {children}
     </AdminContext.Provider>
