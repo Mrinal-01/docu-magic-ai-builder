@@ -29,7 +29,22 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    // Demo user for admin access
+    const demoUser = {
+      id: '1',
+      email: 'admin@docuforge.com',
+      first_name: 'Admin',
+      last_name: 'User',
+      subscription_status: 'enterprise' as const
+    };
+    
+    const token = localStorage.getItem('auth_token');
+    if (token === 'demo_admin_token') {
+      return demoUser;
+    }
+    return null;
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,6 +55,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const token = localStorage.getItem('auth_token');
       if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      // Demo admin token check
+      if (token === 'demo_admin_token') {
+        setUser({
+          id: '1',
+          email: 'admin@docuforge.com',
+          first_name: 'Admin',
+          last_name: 'User',
+          subscription_status: 'enterprise'
+        });
         setLoading(false);
         return;
       }
@@ -67,6 +95,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const login = async (email: string, password: string) => {
+    // Demo admin login
+    if (email === 'admin@docuforge.com' && password === 'admin123') {
+      const token = 'demo_admin_token';
+      const userData = {
+        id: '1',
+        email: 'admin@docuforge.com',
+        first_name: 'Admin',
+        last_name: 'User',
+        subscription_status: 'enterprise' as const
+      };
+      
+      localStorage.setItem('auth_token', token);
+      setUser(userData);
+      return;
+    }
+
     // TODO: Replace with your backend API
     const response = await fetch('/api/auth/login', {
       method: 'POST',
@@ -114,7 +158,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     try {
       const token = localStorage.getItem('auth_token');
-      if (token) {
+      if (token && token !== 'demo_admin_token') {
         // TODO: Replace with your backend API
         await fetch('/api/auth/logout', {
           method: 'POST',
