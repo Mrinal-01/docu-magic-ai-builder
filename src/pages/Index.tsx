@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -70,7 +69,7 @@ const Index = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => navigate('/dashboard')}
-                  className="border-white/20 text-white hover:bg-white/10 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                  className="border-white/30 text-white hover:bg-white/20 hover:text-white dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-100 transition-colors"
                 >
                   Dashboard
                 </Button>
@@ -78,7 +77,7 @@ const Index = () => {
                   variant="outline"
                   size="sm"
                   onClick={handleLogout}
-                  className="border-white/20 text-white hover:bg-white/10 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                  className="border-white/30 text-white hover:bg-white/20 hover:text-white dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-100 transition-colors"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Logout
@@ -93,7 +92,7 @@ const Index = () => {
                     setAuthMode('login');
                     setShowAuthModal(true);
                   }}
-                  className="border-white/20 text-white hover:bg-white/10 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                  className="border-white/30 text-white hover:bg-white/20 hover:text-white dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-100 transition-colors"
                 >
                   Login
                 </Button>
@@ -103,7 +102,7 @@ const Index = () => {
                     setAuthMode('register');
                     setShowAuthModal(true);
                   }}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
                 >
                   Sign Up
                 </Button>

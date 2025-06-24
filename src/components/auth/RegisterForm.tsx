@@ -1,12 +1,13 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { Eye, EyeOff } from 'lucide-react';
+import { GoogleAuthButton } from './GoogleAuthButton';
 
 interface RegisterFormProps {
   onSwitchToLogin: () => void;
@@ -19,10 +20,13 @@ export const RegisterForm = ({ onSwitchToLogin, onClose }: RegisterFormProps) =>
   const [confirmPassword, setConfirmPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { register } = useAuth();
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const { register, googleLogin } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +52,7 @@ export const RegisterForm = ({ onSwitchToLogin, onClose }: RegisterFormProps) =>
     setIsLoading(true);
 
     try {
-      await register(email, password, firstName, lastName);
+      await register(email, password, firstName || fullName.split(' ')[0], lastName || fullName.split(' ')[1] || '');
       toast({
         title: 'Registration Successful',
         description: 'Welcome to DocuForge AI!',
@@ -65,40 +69,101 @@ export const RegisterForm = ({ onSwitchToLogin, onClose }: RegisterFormProps) =>
     }
   };
 
+  const handleGoogleSignup = async () => {
+    setIsGoogleLoading(true);
+    try {
+      await googleLogin();
+      toast({
+        title: 'Registration Successful',
+        description: 'Welcome to DocuForge AI!',
+      });
+      onClose?.();
+    } catch (error) {
+      toast({
+        title: 'Google Signup Failed',
+        description: error instanceof Error ? error.message : 'Authentication failed',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
   return (
-    <Card className="w-full max-w-md mx-auto bg-white/10 backdrop-blur-md border-white/20">
+    <Card className="w-full max-w-md mx-auto bg-white/10 backdrop-blur-md border-white/20 dark:bg-gray-900/90 dark:border-gray-700">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl text-white">Sign Up</CardTitle>
-        <CardDescription className="text-gray-300">
+        <CardTitle className="text-2xl text-white dark:text-gray-100">Sign Up</CardTitle>
+        <CardDescription className="text-gray-300 dark:text-gray-400">
           Create your account to start generating documents
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        <GoogleAuthButton 
+          mode="register" 
+          onGoogleAuth={handleGoogleSignup}
+          isLoading={isGoogleLoading}
+        />
+        
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <Separator className="w-full bg-white/20 dark:bg-gray-600" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-transparent px-2 text-gray-300 dark:text-gray-400">Or continue with email</span>
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="fullName" className="text-white dark:text-gray-200">Full Name</Label>
+            <Input
+              id="fullName"
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="bg-white/10 border-white/20 text-white placeholder-gray-400 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
+              placeholder="Enter your full name"
+              required
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="firstName" className="text-white">First Name</Label>
+              <Label htmlFor="firstName" className="text-white dark:text-gray-200">First Name</Label>
               <Input
                 id="firstName"
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder-gray-400"
+                className="bg-white/10 border-white/20 text-white placeholder-gray-400 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
                 placeholder="First name"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastName" className="text-white">Last Name</Label>
+              <Label htmlFor="lastName" className="text-white dark:text-gray-200">Last Name</Label>
               <Input
                 id="lastName"
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder-gray-400"
+                className="bg-white/10 border-white/20 text-white placeholder-gray-400 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
                 placeholder="Last name"
               />
             </div>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone" className="text-white dark:text-gray-200">Phone Number (Optional)</Label>
+            <Input
+              id="phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="bg-white/10 border-white/20 text-white placeholder-gray-400 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
+              placeholder="Enter your phone number"
+            />
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="email" className="text-white">Email</Label>
             <Input

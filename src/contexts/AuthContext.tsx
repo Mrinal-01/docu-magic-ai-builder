@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
@@ -18,6 +17,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   logout: () => void;
+  googleLogin: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -124,8 +124,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('auth_token');
   };
 
+  const googleLogin = async (): Promise<void> => {
+    setLoading(true);
+    try {
+      // Simulate Google OAuth flow
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Simulate successful Google authentication
+      const userData: User = {
+        id: `google-${Date.now()}`,
+        email: 'user@gmail.com',
+        name: 'Google User',
+        first_name: 'Google',
+        last_name: 'User',
+        createdAt: new Date().toISOString(),
+        subscription_status: 'free'
+      };
+      
+      setUser(userData);
+      setIsAuthenticated(true);
+      localStorage.setItem('auth_token', 'google-jwt-token');
+    } catch (error) {
+      throw new Error('Google authentication failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isAuthenticated, 
+      loading, 
+      login, 
+      register, 
+      logout, 
+      googleLogin 
+    }}>
       {children}
     </AuthContext.Provider>
   );

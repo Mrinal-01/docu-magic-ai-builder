@@ -12,6 +12,7 @@ import { SignatureCapture } from "@/components/SignatureCapture";
 import { generateDocumentDummy, downloadDocument } from "@/utils/documentGenerator";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthModal } from "@/components/auth/AuthModal";
+import { DocumentPreview } from "@/components/DocumentPreview";
 
 interface Question {
   id: string;
@@ -89,6 +90,7 @@ const GenerateDocument = () => {
   } | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [showPreview, setShowPreview] = useState(false);
   
   const { isAuthenticated } = useAuth();
   const config = docType ? documentConfigs[docType] : null;
@@ -141,10 +143,11 @@ const GenerateDocument = () => {
       });
       
       setGeneratedDocument(document);
+      setShowPreview(true); // Show preview after generation
       
       toast({
         title: "Document Generated Successfully!",
-        description: "Your professional document is ready. Login to download it.",
+        description: "Your professional document is ready for preview.",
       });
     } catch (error) {
       toast({
@@ -269,13 +272,22 @@ const GenerateDocument = () => {
                 <p className="text-yellow-300 text-sm mt-2">Please login or sign up to download your document</p>
               )}
             </div>
-            <Button 
-              onClick={handleDownload} 
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              {isAuthenticated ? 'Download Document' : 'Login to Download'}
-            </Button>
+            <div className="flex gap-4 justify-center">
+              <Button 
+                onClick={() => setShowPreview(true)} 
+                variant="outline"
+                className="border-white/20 text-white hover:bg-white/10"
+              >
+                Preview Document
+              </Button>
+              <Button 
+                onClick={handleDownload} 
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                {isAuthenticated ? 'Download Document' : 'Login to Download'}
+              </Button>
+            </div>
           </div>
         ) : (
           <Button 
@@ -365,6 +377,15 @@ const GenerateDocument = () => {
           </Card>
         </div>
       </div>
+
+      {/* Document Preview Modal */}
+      <DocumentPreview
+        isOpen={showPreview}
+        onClose={() => setShowPreview(false)}
+        document={generatedDocument}
+        onDownload={handleDownload}
+        isAuthenticated={isAuthenticated}
+      />
 
       {/* Auth Modal for Download */}
       <AuthModal

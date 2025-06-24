@@ -1,12 +1,13 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { Eye, EyeOff } from 'lucide-react';
+import { GoogleAuthButton } from './GoogleAuthButton';
 
 interface LoginFormProps {
   onSwitchToRegister: () => void;
@@ -18,7 +19,8 @@ export const LoginForm = ({ onSwitchToRegister, onClose }: LoginFormProps) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const { login, googleLogin } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,15 +44,50 @@ export const LoginForm = ({ onSwitchToRegister, onClose }: LoginFormProps) => {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    setIsGoogleLoading(true);
+    try {
+      await googleLogin();
+      toast({
+        title: 'Login Successful',
+        description: 'Welcome back!',
+      });
+      onClose?.();
+    } catch (error) {
+      toast({
+        title: 'Google Login Failed',
+        description: error instanceof Error ? error.message : 'Authentication failed',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
   return (
-    <Card className="w-full max-w-md mx-auto bg-white/10 backdrop-blur-md border-white/20">
+    <Card className="w-full max-w-md mx-auto bg-white/10 backdrop-blur-md border-white/20 dark:bg-gray-900/90 dark:border-gray-700">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl text-white">Login</CardTitle>
-        <CardDescription className="text-gray-300">
+        <CardTitle className="text-2xl text-white dark:text-gray-100">Login</CardTitle>
+        <CardDescription className="text-gray-300 dark:text-gray-400">
           Sign in to access your documents
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        <GoogleAuthButton 
+          mode="login" 
+          onGoogleAuth={handleGoogleLogin}
+          isLoading={isGoogleLoading}
+        />
+        
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <Separator className="w-full bg-white/20 dark:bg-gray-600" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-transparent px-2 text-gray-300 dark:text-gray-400">Or continue with email</span>
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email" className="text-white">Email</Label>
