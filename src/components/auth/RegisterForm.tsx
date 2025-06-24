@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,8 +19,6 @@ export const RegisterForm = ({ onSwitchToLogin, onClose }: RegisterFormProps) =>
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -52,7 +51,9 @@ export const RegisterForm = ({ onSwitchToLogin, onClose }: RegisterFormProps) =>
     setIsLoading(true);
 
     try {
-      await register(email, password, firstName || fullName.split(' ')[0], lastName || fullName.split(' ')[1] || '');
+      const firstName = fullName.split(' ')[0];
+      const lastName = fullName.split(' ').slice(1).join(' ') || '';
+      await register(email, password, firstName, lastName);
       toast({
         title: 'Registration Successful',
         description: 'Welcome to DocuForge AI!',
@@ -127,28 +128,64 @@ export const RegisterForm = ({ onSwitchToLogin, onClose }: RegisterFormProps) =>
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstName" className="text-white dark:text-gray-200">First Name</Label>
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-white dark:text-gray-200">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="bg-white/10 border-white/20 text-white placeholder-gray-400 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
+              placeholder="Enter your email"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-white dark:text-gray-200">Password</Label>
+            <div className="relative">
               <Input
-                id="firstName"
-                type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder-gray-400 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
-                placeholder="First name"
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="bg-white/10 border-white/20 text-white placeholder-gray-400 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 pr-10"
+                placeholder="Enter your password"
+                required
               />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 text-gray-400 hover:text-white"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName" className="text-white dark:text-gray-200">Last Name</Label>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword" className="text-white dark:text-gray-200">Confirm Password</Label>
+            <div className="relative">
               <Input
-                id="lastName"
-                type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder-gray-400 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
-                placeholder="Last name"
+                id="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="bg-white/10 border-white/20 text-white placeholder-gray-400 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 pr-10"
+                placeholder="Confirm your password"
+                required
               />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 text-gray-400 hover:text-white"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
             </div>
           </div>
 
@@ -164,64 +201,6 @@ export const RegisterForm = ({ onSwitchToLogin, onClose }: RegisterFormProps) =>
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-white">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="bg-white/10 border-white/20 text-white placeholder-gray-400"
-              placeholder="Enter your email"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-white">Password</Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder-gray-400 pr-10"
-                placeholder="Enter your password"
-                required
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 h-full px-3 text-gray-400 hover:text-white"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword" className="text-white">Confirm Password</Label>
-            <div className="relative">
-              <Input
-                id="confirmPassword"
-                type={showConfirmPassword ? 'text' : 'password'}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder-gray-400 pr-10"
-                placeholder="Confirm your password"
-                required
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 h-full px-3 text-gray-400 hover:text-white"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              >
-                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
-            </div>
-          </div>
           <Button
             type="submit"
             className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"

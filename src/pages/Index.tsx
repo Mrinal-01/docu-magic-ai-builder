@@ -69,7 +69,7 @@ const Index = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => navigate('/dashboard')}
-                  className="border-white/30 text-white hover:bg-white/20 hover:text-white dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-100 transition-colors"
+                  className="border-gray-300 text-gray-900 hover:bg-gray-100 hover:text-gray-900 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-100 bg-white dark:bg-gray-800 transition-colors"
                 >
                   Dashboard
                 </Button>
@@ -77,7 +77,7 @@ const Index = () => {
                   variant="outline"
                   size="sm"
                   onClick={handleLogout}
-                  className="border-white/30 text-white hover:bg-white/20 hover:text-white dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-100 transition-colors"
+                  className="border-gray-300 text-gray-900 hover:bg-gray-100 hover:text-gray-900 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-100 bg-white dark:bg-gray-800 transition-colors"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Logout
@@ -92,7 +92,7 @@ const Index = () => {
                     setAuthMode('login');
                     setShowAuthModal(true);
                   }}
-                  className="border-white/30 text-white hover:bg-white/20 hover:text-white dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-100 transition-colors"
+                  className="border-gray-300 text-gray-900 hover:bg-gray-100 hover:text-gray-900 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-100 bg-white dark:bg-gray-800 transition-colors"
                 >
                   Login
                 </Button>

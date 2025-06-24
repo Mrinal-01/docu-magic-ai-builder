@@ -11,12 +11,12 @@ export const ThemeToggle = () => {
       variant="outline"
       size="sm"
       onClick={toggleTheme}
-      className="border-white/20 text-white hover:bg-white/10 hover:text-white dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-gray-100 transition-colors"
+      className="border-gray-300 text-gray-900 hover:bg-gray-100 hover:text-gray-900 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-gray-100 bg-white dark:bg-gray-800 transition-colors"
     >
       {isDark ? (
         <Sun className="w-4 h-4 text-yellow-400" />
       ) : (
-        <Moon className="w-4 h-4 text-blue-300" />
+        <Moon className="w-4 h-4 text-blue-600" />
       )}
     </Button>
   );

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Download, X } from 'lucide-react';
+import { Download } from 'lucide-react';
 
 interface DocumentPreviewProps {
   isOpen: boolean;
@@ -30,11 +30,8 @@ export const DocumentPreview = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[80vh] bg-white dark:bg-gray-900">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between text-gray-900 dark:text-white">
+          <DialogTitle className="text-gray-900 dark:text-white">
             Document Preview
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="w-4 h-4" />
-            </Button>
           </DialogTitle>
           <DialogDescription className="text-gray-600 dark:text-gray-400">
             Review your generated document before downloading
@@ -58,7 +55,7 @@ export const DocumentPreview = ({
             </div>
             <Button 
               onClick={onDownload}
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
             >
               <Download className="w-4 h-4 mr-2" />
               {isAuthenticated ? 'Download Document' : 'Login to Download'}
